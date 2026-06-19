@@ -17,6 +17,6 @@ item mmcblk0   3. Install Debian on /dev/mmcblk0
 choose target_disk
 
 echo Booting Debian Installer for target: /dev/${target_disk}...
-kernel ${debian_mirror}/vmlinuz ${common_params} partman-auto/disk=/dev/${target_disk} ---
+kernel ${debian_mirror}/linux ${common_params} partman-auto/disk=/dev/${target_disk} ---
 initrd ${debian_mirror}/initrd.gz
 boot
