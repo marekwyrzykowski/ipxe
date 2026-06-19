@@ -1,3 +1,5 @@
 #!ipxe
 # netboot.xyz
+echo akuku2
+sleep 3
 chain --autofree https://boot.netboot.xyz
