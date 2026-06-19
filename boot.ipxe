@@ -1,0 +1,3 @@
+#!ipxe
+# netboot.xyz
+chain --autofree https://boot.netboot.xyz
