@@ -1,0 +1,18 @@
+#!ipxe
+
+# czekaj na fizyczny link (w sekundach), jeśli karta sieciowa wolno wstaje
+ifopen net0
+#config net0
+
+:retry_dhcp
+dhcp || goto retry_dhcp
+
+sleep 3
+# SERWERY NTP:
+ntp time.cloudflare.com || ntp 2.pool.ntp.org ||
+
+sleep 3
+echo akuku
+
+# netboot.xyz
+chain --autofree https://boot.netboot.xyz
