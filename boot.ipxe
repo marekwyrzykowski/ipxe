@@ -4,7 +4,7 @@
 #sleep 3
 #chain --autofree https://boot.netboot.xyz
 
-set gh_url https://marekwyrzykowski.github.io/ipxe
+set gh_url http://marekwyrzykowski.github.io/ipxe
 #set debian_mirror http://deb.debian.org/debian/dists/trixie/main/installer-amd64/current/images/netboot/debian-installer/amd64
 
 # Wspólne parametry instalatora (zaciągane z GH)
