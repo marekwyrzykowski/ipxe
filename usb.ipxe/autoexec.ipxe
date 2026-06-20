@@ -1,0 +1,36 @@
+#!ipxe
+
+# Wait for the network to be ready
+ifopen net0
+#config net0
+
+:retry_dhcp
+dhcp || goto retry_dhcp
+
+# Wait for a moment to ensure the network is fully up
+sleep 3
+
+# NTP synchronization before proceeding with the boot process
+ntp time.cloudflare.com || ntp 2.pool.ntp.org ||
+
+echo "Network is ready, proceeding with boot process..."
+
+
+# =========================================================================
+# Redirect to a specific configuration based on the MAC address of the client
+# =========================================================================
+set gh_url https://marekwyrzykowski.github.io/ipxe
+
+# 1. First, try to load a configuration file specific to the client's MAC address
+chain --autofree ${gh_url}/mac-${net0/mac}.ipxe || goto generic_boot
+
+:generic_boot
+# 2. If no specific configuration is found, load the generic boot menu
+chain --autofree ${gh_url}/boot.ipxe || goto fallback
+
+:fallback
+# 3. If the generic boot menu is also not found, display an error message
+echo "Error: Unable to load boot configuration from ${gh_url}"
+echo "Please check the network connection and the availability of the configuration files."
+sleep 15
+reboot
