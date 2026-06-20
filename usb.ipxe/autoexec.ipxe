@@ -1,5 +1,7 @@
 #!ipxe
 
+# https://ipxe.org/cmd
+
 # Wait for the network to be ready
 ifopen net0
 #config net0
