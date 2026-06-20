@@ -21,7 +21,7 @@ echo "Network is ready, proceeding with boot process..."
 # =========================================================================
 # Redirect to a specific configuration based on the MAC address of the client
 # =========================================================================
-set gh_url https://marekwyrzykowski.github.io/ipxe
+set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main
 
 # 1. First, try to load a configuration file specific to the client's MAC address
 chain --autofree ${gh_url}/mac-${net0/mac}.ipxe || goto generic_boot
