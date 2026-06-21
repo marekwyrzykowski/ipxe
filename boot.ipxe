@@ -8,8 +8,8 @@ set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/ma
 #set debian_mirror http://deb.debian.org/debian/dists/trixie/main/installer-amd64/current/images/netboot/debian-installer/amd64
 
 # Wspólne parametry instalatora (zaciągane z GH)
-#set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=w01 url=${gh_url}/debian/preseed.cfg my_cloud_config=${gh_url}/debian/cloud-config.yaml
-set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=w01 my_cloud_config=${gh_url}/debian/cloud-config.yaml
+set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=w01 url=${gh_url}/debian/preseed.cfg my_cloud_config=${gh_url}/debian/cloud-config.yaml
+#set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=w01 my_cloud_config=${gh_url}/debian/cloud-config.yaml
 
 menu Debian 13 (Trixie) - Automated Network Installation
 item sda       1. Install Debian on /dev/sda
