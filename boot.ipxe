@@ -4,19 +4,21 @@
 #sleep 3
 #chain --autofree https://boot.netboot.xyz
 
+set hostname w01
+
 set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main
 #set debian_mirror http://deb.debian.org/debian/dists/trixie/main/installer-amd64/current/images/netboot/debian-installer/amd64
 
 # Pobieramy unixtime z iPXE do lokalnej zmiennej skryptu
 #set boot_time ${syslogs:unixtime}
-set debian_date ${year}-${month}-${day}
+#set debian_date ${year}-${month}-${day}
 
 # Wspólne parametry instalatora (zaciągane z GH)
-set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=w01 preseed/early_command="date -s ${debian_date};" url=${gh_url}/debian/preseed.cfg my_cloud_config=${gh_url}/debian/cloud-config.yaml
-#set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=w01 preseed/early_command="ntpdate pool.ntp.org || rdate -s time.nist.gov" url=${gh_url}/debian/preseed.cfg my_cloud_config=${gh_url}/debian/cloud-config.yaml
-#set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=w01 preseed/early_command="date -s @${boot_time}" url=${gh_url}/debian/preseed.cfg my_cloud_config=${gh_url}/debian/cloud-config.yaml
-#set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=w01 url=${gh_url}/debian/preseed.cfg my_cloud_config=${gh_url}/debian/cloud-config.yaml
-#set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=w01 my_cloud_config=${gh_url}/debian/cloud-config.yaml
+#set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=${hostname} preseed/early_command="date -s ${debian_date};" url=${gh_url}/debian/preseed.cfg my_cloud_config=${gh_url}/debian/cloud-config.yaml
+set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=${hostname} preseed/early_command="rdate -s time.nist.gov" url=${gh_url}/debian/preseed.cfg my_cloud_config=${gh_url}/debian/cloud-config.yaml
+#set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=${hostname} preseed/early_command="date -s @${boot_time}" url=${gh_url}/debian/preseed.cfg my_cloud_config=${gh_url}/debian/cloud-config.yaml
+#set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=${hostname} url=${gh_url}/debian/preseed.cfg my_cloud_config=${gh_url}/debian/cloud-config.yaml
+#set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=${hostname} my_cloud_config=${gh_url}/debian/cloud-config.yaml
 
 
 
