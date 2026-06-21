@@ -81,6 +81,16 @@ dpkg-deb -x rdate-udeb_1.11-3_amd64.udeb /tmp/rebuild_initrd/
 dpkg-deb -x libbsd0-udeb_0.12.2-3_amd64.udeb /tmp/rebuild_initrd/
 dpkg-deb -x libmd0-udeb_1.2.0-2_amd64.udeb /tmp/rebuild_initrd/
 
+
+# ==========================================================================
+# Dodanie portów do /etc/services
+# ==========================================================================
+mkdir -p /tmp/rebuild_initrd/etc
+cat << 'EOF' >> /tmp/rebuild_initrd/etc/services
+time            37/tcp
+time            37/udp
+EOF
+
 # 6. Uporządkowanie i naprawa dowiązań symbolicznych w /lib/
 cd /tmp/rebuild_initrd/lib/
 
