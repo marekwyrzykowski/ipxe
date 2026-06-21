@@ -12,7 +12,7 @@ set common_params \
   netcfg/choose_interface=auto \
   netcfg/hostname_from_cmdline=true \
   netcfg/get_hostname=${hostname} \
-  preseed/early_command="udhcpc -i eth0 -n -q -T 5 && rdate -s time.nist.gov" \
+  preseed/early_command="udhcpc -i eth0 -n -q -T 5 && rdate -s time.nist.gov;" \
   url=${gh_url}/debian/preseed.cfg \
   my_cloud_config=${gh_url}/debian/cloud-config.yaml
 
