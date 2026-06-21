@@ -2,12 +2,23 @@
 set hostname w01
 
 set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main
-set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=${hostname} preseed/early_command="rdate -s time.nist.gov" url=${gh_url}/debian/preseed.cfg my_cloud_config=${gh_url}/debian/cloud-config.yaml
+#set common_params DEBIAN_FRONTEND=text auto=true priority=critical vga=788 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=${hostname} preseed/early_command="rdate -s time.nist.gov" url=${gh_url}/debian/preseed.cfg my_cloud_config=${gh_url}/debian/cloud-config.yaml
+set common_params \
+  DEBIAN_FRONTEND=text \
+  auto=true \
+  priority=critical \
+  vga=788 \
+  netcfg/choose_interface=auto \
+  netcfg/hostname_from_cmdline=true \
+  netcfg/get_hostname=w01 \
+  preseed/early_command="sleep 5; rdate -s 132.163.97.5" \
+  url=${gh_url}/debian/preseed.cfg \
+  my_cloud_config=${gh_url}/debian/cloud-config.yaml
 
 menu Debian 13 (Trixie) - Automated Network Installation
+item mmcblk0   3. Install Debian on /dev/mmcblk0
 item sda       1. Install Debian on /dev/sda
 item sdb       2. Install Debian on /dev/sdb
-item mmcblk0   3. Install Debian on /dev/mmcblk0
 choose target_disk
 
 echo Booting Debian Installer for target: /dev/${target_disk}...
