@@ -16,9 +16,9 @@ set common_params \
   my_cloud_config=${gh_url}/debian/cloud-config.yaml
 
 menu Debian 13 (Trixie) - Automated Network Installation
-item mmcblk0   3. Install Debian on /dev/mmcblk0
-item sda       1. Install Debian on /dev/sda
-item sdb       2. Install Debian on /dev/sdb
+item mmcblk0   1. Install Debian on /dev/mmcblk0
+item sda       2. Install Debian on /dev/sda
+item sdb       3. Install Debian on /dev/sdb
 choose target_disk
 
 echo Booting Debian Installer for target: /dev/${target_disk}...
