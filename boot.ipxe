@@ -11,6 +11,9 @@ item sdb       3. Install Debian on /dev/sdb
 choose target_disk
 
 echo Booting Debian Installer for target: /dev/${target_disk}...
+echo kernel ${gh_url}/debian/vmlinuz ${common_params} partman-auto/disk=/dev/${target_disk} ---
+echo initrd ${gh_url}/debian/initrd.rtl8169.gz
+
 kernel ${gh_url}/debian/vmlinuz ${common_params} partman-auto/disk=/dev/${target_disk} ---
 initrd ${gh_url}/debian/initrd.rtl8169.gz
 
