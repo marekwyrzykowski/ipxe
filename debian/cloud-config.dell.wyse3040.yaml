@@ -1,0 +1,145 @@
+#cloud-config
+
+users:
+  - name: debian
+    gecos: System Administrator
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: true
+    #groups: [incus-admin] # I can't add the user to the group in the preseed because the group doesn't exist yet, so I'll do it in the runcmd section after the package Incus installation
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII9ji6fDp7SJQblM7imueKNpZLbFedHz7pqUC/6vxjOU marek
+
+disable_root: false
+
+# =========================================================================
+# 1. BOOTCMD: Apply the network configuration and ensure internet connectivity before proceeding with the installation
+# =========================================================================
+# bootcmd:
+#   - rm -f /etc/netplan/*
+
+# =========================================================================
+# 2. FILE GENERATION (Repository Config & Target Network Layout)
+# =========================================================================
+write_files:
+  # Zabbly Incus Repository Configuration (DEB822 Format)
+  # - path: /etc/apt/sources.list.d/zabbly-incus-lts-7.0.sources
+  #   owner: root:root
+  #   permissions: '0644'
+  #   content: |
+  #     Enabled: yes
+  #     Types: deb
+  #     URIs: https://pkgs.zabbly.com/incus/lts-7.0
+  #     Suites: DEBIAN_RELEASE_NAME
+  #     Components: main
+  #     Architectures: amd64
+  #     Signed-By: /etc/apt/keyrings/zabbly.asc
+
+  # TARGET NETWORK CONFIGURATION: Written now, but applied ONLY after reboot
+  - path: /etc/netplan/00-installer-config.yaml
+    owner: root:root
+    permissions: '0600'
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          eth0:
+            dhcp4: false
+            dhcp6: false
+            optional: true
+        bridges:
+          br0:
+            dhcp4: true
+            dhcp6: true
+            interfaces:
+              - eth0
+            macaddress: eth0
+            parameters:
+              stp: false
+              forward-delay: 0
+  - path: /etc/network/interfaces
+    owner: root:root
+    permissions: '0644'
+    content: |
+      # This file is intentionally left empty to disable the old networking service.
+      # Network configuration will be managed by Netplan and systemd-networkd.
+      # Any manual configurations here will be ignored.
+  - path: /etc/modprobe.d/blacklist_dw_dmac.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+      # https://wiki.debian.org/InstallingDebianOn/Dell/Wyse%203040
+      blacklist dw_dmac_core
+      install dw_dmac /bin/true
+      install dw_dmac_core /bin/true
+
+
+# =========================================================================
+# 3. PACKAGE INSTALLATION
+# =========================================================================
+package_update: true
+package_upgrade: true
+packages:
+  - curl
+  - eatmydata
+  - nano
+  - incus-agent
+  - btop
+  - iproute2
+  - vlan
+
+# =========================================================================
+# 4. INSTALLATION (Runs smoothly on installer's network IP)
+# =========================================================================
+runcmd:
+  # # Dynamically replace the Debian release codename placeholder (e.g., trixie)
+  # - . /etc/os-release && sed -i "s/DEBIAN_RELEASE_NAME/${VERSION_CODENAME}/" /etc/apt/sources.list.d/zabbly-incus-lts-7.0.sources
+
+  # # Prepare the keyring directory
+  # - mkdir -p /etc/apt/keyrings
+
+  # # Fetch the official Zabbly repository GPG key
+  # - curl -fsSL https://pkgs.zabbly.com/key.asc -o /etc/apt/keyrings/zabbly.asc
+
+  # # Secure SHA256 checksum verification
+  # - |
+  #   EXPECTED_SHA256="f1adb44fdf82083f983a392b5b406d34e473dce3d66a51de3118cdc1f51d3f87"
+  #   ACTUAL_SHA256=$(sha256sum /etc/apt/keyrings/zabbly.asc | awk '{print $1}')
+  #   if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+  #       echo "CRITICAL ERROR: Zabbly key SHA256 checksum mismatch!"
+  #       rm -f /etc/apt/keyrings/zabbly.asc
+  #       exit 1
+  #   fi
+
+  # Update package lists, perform full system upgrade, and install software using eatmydata
+  # - apt-get update -y
+  # eatmydata is used to speed up package installation by disabling fsync calls, which is safe in this context since we are in a controlled provisioning environment.
+  # - eatmydata apt-get install -y incus incus-agent lxc
+  # - eatmydata apt-get install -y incus-agent
+  # - usermod -aG incus-admin debian
+
+  # # Finalize the network configuration by regenerating GRUB with the new kernel parameters and ensuring the bridge is set up on next boot
+  # - sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="net.ifnames=0 biosdevname=0 /' /etc/default/grub
+  # - update-grub
+
+  # - systemctl disable networking.service
+  # - systemctl enable systemd-networkd.service systemd-resolved.service
+
+  # update-initramfs is run to ensure that the initramfs includes the fix for the dw_dmac_core module
+  - update-initramfs -u
+  
+  - sed -i "s/macaddress:\s*eth0/macaddress:\ $(cat /sys/class/net/eth0/address)/g" /etc/netplan/00-installer-config.yaml
+  - netplan generate || true
+
+
+
+
+# =========================================================================
+# 5. REBOOT: Safe reboot to bring up the new br0 architecture
+# =========================================================================
+power_state:
+  mode: reboot
+  message: "Provisioning complete. Rebooting to apply the write_files network layout..."
+  timeout: 5
+  condition: true
