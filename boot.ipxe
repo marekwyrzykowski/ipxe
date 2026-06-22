@@ -17,7 +17,7 @@ choose target_disk
 
 
 :boot_system
-echo Booting Debian Installer for target: /dev/${target_disk}...
+echo Booting Debian Installer for target: ${hostname} on /dev/${target_disk}...
 
 kernel ${gh_url}/debian/vmlinuz
 imgargs vmlinuz DEBIAN_FRONTEND=text auto=true priority=critical nomodeset net.ifnames=0 netcfg/choose_interface=eth0 netcfg/hostname_from_cmdline=true netcfg/get_hostname=${hostname} preseed/early_command="udhcpc -i eth0 -n -q -T 5; rdate -s time.nist.gov" url=${my_preseed_config} my_cloud_config=${my_cloud_config} partman-auto/disk=/dev/${target_disk}
