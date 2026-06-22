@@ -2,8 +2,8 @@
 set hostname w01
 
 set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main
-set my_cloud_config ${gh_url}/debian/cloud-config.dell.wyse3040.yaml
-set my_preseed_config ${gh_url}/debian/preseed.cfg
+set my_cloud_config ${gh_url}/debian/cloud-config.dell.wyse3040.yaml?${rand}
+set my_preseed_config ${gh_url}/debian/preseed.cfg?${rand}
 
 menu Debian 13 (Trixie) - Automated Network Installation
 item mmcblk0   1. Install Debian on /dev/mmcblk0
