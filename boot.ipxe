@@ -9,6 +9,7 @@ isset ${custom_preseed_config} || set custom_preseed_config ${gh_url}/debian/pre
 set my_cloud_config ${custom_cloud_config}
 set my_preseed_config ${custom_preseed_config}
 
+isset ${target_disk} && goto boot_system ||
 
 # --- MENU INSTALATORA ---
 menu Debian 13 (Trixie) - Automated Network Installation [Host: ${hostname}]
@@ -18,6 +19,8 @@ item sda       3. Install Debian on /dev/sda
 item sdb       4. Install Debian on /dev/sdb
 choose target_disk
 
+
+:boot_system
 echo Booting Debian Installer for target: /dev/${target_disk}...
 
 kernel ${gh_url}/debian/vmlinuz
