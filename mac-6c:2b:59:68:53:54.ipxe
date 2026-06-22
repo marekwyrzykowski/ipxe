@@ -4,11 +4,11 @@ set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/ma
 
 # Set the hostname for the installer environment
 set hostname w02
-set target_disk mmcblk0
+#set target_disk mmcblk0
 set custom_cloud_config cloud-config.dell.wyse.3040.yaml
 
 # Define additional initrd for the Realtek r8169 network driver
-set extra_initrd initrd ${gh_url}/debian/modules/r8169.ko.xz /lib/modules/6.12.86+deb13-amd64/kernel/drivers/net/ethernet/realtek/r8169.ko.xz
+#set extra_initrd initrd ${gh_url}/debian/modules/r8169.ko.xz /lib/modules/6.12.86+deb13-amd64/kernel/drivers/net/ethernet/realtek/r8169.ko.xz
 
 # Include the main Debian installer configuration
 chain --autofree ${gh_url}/boot.ipxe?${rand} || goto fallback
