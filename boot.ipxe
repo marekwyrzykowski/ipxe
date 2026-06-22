@@ -2,8 +2,8 @@
 
 isset ${gh_url} || set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main
 isset ${hostname} || set hostname debian-node
-isset ${my_cloud_config} || set my_cloud_config ${gh_url}/debian/cloud-config.yaml?${rand}
-isset ${my_preseed_config} || set my_preseed_config ${gh_url}/debian/preseed.cfg?${rand}
+isset ${my_cloud_config} || set my_cloud_config ${gh_url}/debian/cloud-config.yaml
+isset ${my_preseed_config} || set my_preseed_config ${gh_url}/debian/preseed.cfg
 
 isset ${target_disk} && goto boot_system ||
 
