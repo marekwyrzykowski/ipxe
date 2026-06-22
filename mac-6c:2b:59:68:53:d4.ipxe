@@ -7,8 +7,9 @@ set my_preseed_config ${gh_url}/debian/preseed.cfg
 
 menu Debian 13 (Trixie) - Automated Network Installation
 item mmcblk0   1. Install Debian on /dev/mmcblk0
-item sda       2. Install Debian on /dev/sda
-item sdb       3. Install Debian on /dev/sdb
+item mmcblk1   2. Install Debian on /dev/mmcblk1
+item sda       3. Install Debian on /dev/sda
+item sdb       4. Install Debian on /dev/sdb
 choose target_disk
 
 echo Booting Debian Installer for target: /dev/${target_disk}...
