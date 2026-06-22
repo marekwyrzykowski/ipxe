@@ -1,22 +1,19 @@
 #!ipxe
-set hostname w01
-
+# Main path for the repository:
 set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main
-set my_cloud_config ${gh_url}/debian/cloud-config.dell.wyse3040.yaml?${rand}
-set my_preseed_config ${gh_url}/debian/preseed.cfg?${rand}
 
-menu Debian 13 (Trixie) - Automated Network Installation
-item mmcblk0   1. Install Debian on /dev/mmcblk0
-item mmcblk1   2. Install Debian on /dev/mmcblk1
-item sda       3. Install Debian on /dev/sda
-item sdb       4. Install Debian on /dev/sdb
-choose target_disk
+# Set the hostname for the installer environment
+set hostname w01
+set custom_cloud_config cloud-config.dell.wyse3040.yaml
 
-echo Booting Debian Installer for target: /dev/${target_disk}...
+# Define additional initrd for the Realtek r8169 network driver
+set extra_initrd initrd ${gh_url}/debian/modules/r8169.ko.xz /lib/modules/6.12.86+deb13-amd64/kernel/drivers/net/ethernet/realtek/r8169.ko.xz
 
-kernel ${gh_url}/debian/vmlinuz
-imgargs vmlinuz DEBIAN_FRONTEND=text auto=true priority=critical vga=788 net.ifnames=0 netcfg/choose_interface=auto netcfg/hostname_from_cmdline=true netcfg/get_hostname=${hostname} preseed/early_command="udhcpc -i eth0 -n -q -T 5; rdate -s time.nist.gov" url=${my_preseed_config} my_cloud_config=${my_cloud_config} partman-auto/disk=/dev/${target_disk}
-initrd ${gh_url}/debian/initrd.https.gz
-initrd ${gh_url}/debian/modules/r8169.ko.xz /lib/modules/6.12.86+deb13-amd64/kernel/drivers/net/ethernet/realtek/r8169.ko.xz
+# Include the main Debian installer configuration
+chain --autofree ${gh_url}/boot.ipxe?${rand} || goto fallback
 
-boot
+:fallback
+echo "Error: Unable to load boot configuration from ${gh_url}"
+echo "Please check the network connection and the availability of the configuration files."
+sleep 15
+reboot
