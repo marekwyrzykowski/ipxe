@@ -106,7 +106,7 @@ fi
 
 # 7. Pakowanie nowego, zmodyfikowanego obrazu initrd
 cd /tmp/rebuild_initrd
-find . | cpio -H newc -o | gzip -9 > /tmp/a/initrd.rtl8169.gz
+find . | cpio -H newc -o | gzip -9 > /tmp/a/initrd.https.gz
 
 # Czyszczenie śmieci
 rm -rf /tmp/udeb_packages /tmp/rebuild_initrd
