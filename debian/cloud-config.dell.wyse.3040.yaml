@@ -8,6 +8,8 @@ users:
     lock_passwd: true
     ssh_authorized_keys:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII9ji6fDp7SJQblM7imueKNpZLbFedHz7pqUC/6vxjOU marek
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO7V0H1wgvb6Jehj5yOx98s9ygKrl0DBjd6PkNg/y90B debian
+
 
 disable_root: false
 

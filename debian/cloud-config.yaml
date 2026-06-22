@@ -9,6 +9,7 @@ users:
     #groups: [incus-admin] # I can't add the user to the group in the preseed because the group doesn't exist yet, so I'll do it in the runcmd section after the package Incus installation
     ssh_authorized_keys:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII9ji6fDp7SJQblM7imueKNpZLbFedHz7pqUC/6vxjOU marek
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO7V0H1wgvb6Jehj5yOx98s9ygKrl0DBjd6PkNg/y90B debian
 
 disable_root: false
 
