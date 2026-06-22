@@ -24,11 +24,11 @@ echo "Network is ready, proceeding with boot process..."
 set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main
 
 # 1. First, try to load a configuration file specific to the client's MAC address
-chain --autofree ${gh_url}/mac-${net0/mac}.ipxe || goto generic_boot
+chain --autofree ${gh_url}/mac-${net0/mac}.ipxe?${rand} || goto generic_boot
 
 :generic_boot
 # 2. If no specific configuration is found, load the generic boot menu
-chain --autofree ${gh_url}/boot.ipxe || goto fallback
+chain --autofree ${gh_url}/boot.ipxe?${rand} || goto fallback
 
 :fallback
 # 3. If the generic boot menu is also not found, display an error message
