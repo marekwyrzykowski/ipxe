@@ -126,9 +126,11 @@ runcmd:
   # - systemctl disable networking.service
   # - systemctl enable systemd-networkd.service systemd-resolved.service
 
-  # update-initramfs is run to ensure that the initramfs includes the fix for the dw_dmac_core module
+  # Update the initramfs to include the blacklist configuration
   - update-initramfs -u
-  
+
+  # The following two commands dynamically replace the placeholder "eth0" in the Netplan configuration with the actual MAC address of the eth0 interface,
+  # ensuring that the bridge is correctly associated with the physical network interface. This is crucial for proper network functionality after reboot.
   - sed -i "s/macaddress:\s*eth0/macaddress:\ $(cat /sys/class/net/eth0/address)/g" /etc/netplan/00-installer-config.yaml
   - netplan generate || true
 
