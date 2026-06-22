@@ -1,4 +1,7 @@
 #!ipxe
+
+shell
+
 # Main path for the repository:
 set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main
 
