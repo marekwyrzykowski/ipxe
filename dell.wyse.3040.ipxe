@@ -12,7 +12,7 @@ isset ${my_cloud_config} || set my_cloud_config ${gh_url}/debian/cloud-config.de
 #set extra_initrd initrd ${gh_url}/debian/modules/r8169.ko.xz /lib/modules/6.12.86+deb13-amd64/kernel/drivers/net/ethernet/realtek/r8169.ko.xz
 
 # Include the main Debian installer configuration
-chain --autofree ${gh_url}/boot.ipxe?${rand} || goto fallback
+chain --autofree ${gh_url}/boot.ipxe || goto fallback
 
 :fallback
 echo "Error: Unable to load boot configuration from ${gh_url}"
