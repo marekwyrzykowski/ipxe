@@ -1,0 +1,123 @@
+#cloud-config
+
+users:
+  - name: debian
+    gecos: System Administrator
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII9ji6fDp7SJQblM7imueKNpZLbFedHz7pqUC/6vxjOU marek
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO7V0H1wgvb6Jehj5yOx98s9ygKrl0DBjd6PkNg/y90B debian
+
+
+disable_root: false
+
+# =========================================================================
+# 1. FILE GENERATION (Repository Config & Target Network Layout)
+# =========================================================================
+write_files:
+  # TARGET NETWORK CONFIGURATION: Written now, but applied ONLY after reboot
+  - path: /etc/netplan/00-installer-config.yaml
+    owner: root:root
+    permissions: '0600'
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          eth0:
+            dhcp4: false
+            dhcp6: false
+            optional: true
+        bridges:
+          br0:
+            dhcp4: true
+            dhcp6: true
+            interfaces:
+              - eth0
+            macaddress: eth0
+            parameters:
+              stp: false
+              forward-delay: 0
+  
+  - path: /etc/network/interfaces
+    owner: root:root
+    permissions: '0644'
+    content: |
+      # This file is intentionally left empty to disable the old networking service.
+      # Network configuration will be managed by Netplan and systemd-networkd.
+      # Any manual configurations here will be ignored.
+  
+  # - path: /etc/modprobe.d/blacklist_dw_dmac.conf
+  #   owner: root:root
+  #   permissions: '0644'
+  #   content: |
+  #     # https://wiki.debian.org/InstallingDebianOn/Dell/Wyse%203040
+  #     blacklist dw_dmac_core
+  #     install dw_dmac /bin/true
+  #     install dw_dmac_core /bin/true
+  
+  - path: /etc/systemd/system/generate-issue.service
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Generate dynamic /etc/issue with IP address
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/sh -c 'echo "Debian GNU/Linux 13 (\\l)\n" > /etc/issue; echo "Address IP: $(hostname -I)" >> /etc/issue; echo "" >> /etc/issue'
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+
+
+# =========================================================================
+# 2. PACKAGE INSTALLATION
+# =========================================================================
+package_update: true
+package_upgrade: true
+packages:
+  - curl
+  - eatmydata
+  - nano
+  - incus-agent
+  - btop
+  - iproute2
+  - vlan
+
+# =========================================================================
+# 3. INSTALLATION (Runs smoothly on installer's network IP)
+# =========================================================================
+runcmd:
+  # Reload systemd to recognize the new service and enable it to run at boot
+  - systemctl daemon-reload
+  - systemctl enable generate-issue.service
+
+  # # Remove the dw_dmac and dw_dmac_core modules if they are currently loaded to prevent the system from hanging on reboot.
+  # - modprobe -r dw_dmac || true
+  # - modprobe -r dw_dmac_core || true
+
+  # # Update the initramfs to include the blacklist configuration
+  # - update-initramfs -u
+
+  # The following two commands dynamically replace the placeholder "eth0" in the Netplan configuration with the actual MAC address of the eth0 interface,
+  # ensuring that the bridge is correctly associated with the physical network interface. This is crucial for proper network functionality after reboot.
+  - sed -i "s/macaddress:\s*eth0/macaddress:\ $(cat /sys/class/net/eth0/address)/g" /etc/netplan/00-installer-config.yaml
+  - netplan generate
+
+
+
+
+# =========================================================================
+# 4. REBOOT: Safe reboot to bring up the new br0 architecture
+# =========================================================================
+power_state:
+  mode: reboot
+  message: "Provisioning complete. Rebooting to apply the write_files network layout..."
+  timeout: 5
+  condition: true

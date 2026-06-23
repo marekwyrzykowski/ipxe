@@ -1,0 +1,21 @@
+#!ipxe
+
+# Main path for the repository:
+set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main
+
+# Set the hostname for the installer environment
+isset ${hostname} || set hostname wyse-5070
+isset ${target_disk} || set target_disk mmcblk0
+isset ${my_cloud_config} || set my_cloud_config ${gh_url}/debian/cloud-config.dell.wyse.5070.yaml
+
+# Define additional initrd for the Realtek r8169 network driver
+#set extra_initrd initrd ${gh_url}/debian/modules/r8169.ko.xz /lib/modules/6.12.86+deb13-amd64/kernel/drivers/net/ethernet/realtek/r8169.ko.xz
+
+# Include the main Debian installer configuration
+chain --autofree ${gh_url}/boot.ipxe?${rand} || goto fallback
+
+:fallback
+echo "Error: Unable to load boot configuration from ${gh_url}"
+echo "Please check the network connection and the availability of the configuration files."
+sleep 15
+reboot

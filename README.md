@@ -22,19 +22,20 @@ find . | cpio -H newc -o | gzip -9 > /tmp/a/initrd.rtl8169.gz
 # usb.ipxe
 
 ```bash
-dd if=/dev/zero of=/home/marek/usb.ipxe.img bs=1M count=100
-sudo parted /home/marek/usb.ipxe.img mklabel gpt
-sudo parted /home/marek/usb.ipxe.img mkpart "primary" fat32 1MiB 100%
-sudo parted /home/marek/usb.ipxe.img set 1 boot on
-sudo losetup -P -f /home/marek/usb.ipxe.img 
-sudo mkfs.vfat -F 32 -n "NETBOOT" $(losetup -a | grep "/home/marek/usb.ipxe.img" | cut -d":" -f1)p1
-sudo mkdir -p /tmp/usb.ipxe
-sudo mount $(losetup -a | grep "/home/marek/usb.ipxe.img" | cut -d":" -f1)p1 /tmp/usb.ipxe/
-sudo mkdir -p /tmp/usb.ipxe/EFI/BOOT
-sudo wget https://boot.ipxe.org/x86_64-efi/snponly.efi -O /tmp/usb.ipxe/EFI/BOOT/BOOTX64.EFI
-sudo wget https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main/usb.ipxe/autoexec.ipxe -O /tmp/usb.ipxe/EFI/BOOT/autoexec.ipxe
-sudo umount /tmp/usb.ipxe 
-sudo losetup -d $(losetup -a | grep "/home/marek/usb.ipxe.img" | cut -d":" -f1)
+dd if=/dev/zero of=usb.ipxe.img bs=1M count=100
+sudo parted usb.ipxe.img mklabel gpt
+sudo parted usb.ipxe.img mkpart "primary" fat32 1MiB 100%
+sudo parted usb.ipxe.img set 1 boot on
+sudo losetup -P -f usb.ipxe.img 
+sudo mkfs.vfat -F 32 -n "NETBOOT" $(sudo losetup -a | grep "usb.ipxe.img" | cut -d":" -f1)p1
+sudo mkdir -p pendrive
+sudo mount $(sudo losetup -a | grep "usb.ipxe.img" | cut -d":" -f1)p1 pendrive
+sudo mkdir -p pendrive/EFI/BOOT
+sudo wget https://boot.ipxe.org/x86_64-efi/snponly.efi -O pendrive/EFI/BOOT/BOOTX64.EFI
+sudo wget https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main/usb.ipxe/autoexec.ipxe -O pendrive/autoexec.ipxe
+sudo wget https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main/usb.ipxe/autoexec.ipxe -O pendrive/EFI/BOOT/autoexec.ipxe
+sudo umount pendrive 
+sudo losetup -d $(sudo losetup -a | grep "usb.ipxe.img" | cut -d":" -f1)
 ```
 
 
