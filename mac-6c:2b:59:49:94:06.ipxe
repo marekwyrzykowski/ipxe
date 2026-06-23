@@ -3,6 +3,9 @@
 # Set the hostname for the installer environment
 set hostname w05
 
+echo ${rand}
+sleep 5
+
 # Include the main Debian installer configuration for the Dell Wyse 3040 device
 chain --autofree ${gh_url}/dell.wyse.3040.ipxe?${rand} || goto fallback
 
