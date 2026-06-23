@@ -1,0 +1,13 @@
+#!ipxe
+
+# Set the hostname for the installer environment
+set hostname w304006
+
+# Include the main Debian installer configuration for the Dell Wyse 3040 device
+chain --autofree ${gh_url}/dell.wyse.3040.ipxe || goto fallback
+
+:fallback
+echo "Error: Unable to load boot configuration from ${gh_url} for the Dell Wyse 3040 device."
+echo "Please check the network connection and the availability of the configuration files."
+sleep 15
+reboot
