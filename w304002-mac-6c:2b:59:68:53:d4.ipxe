@@ -1,7 +1,7 @@
 #!ipxe
 
 # Set the hostname for the installer environment
-set hostname w04
+set hostname w304002
 
 # Include the main Debian installer configuration for the Dell Wyse 3040 device
 chain --autofree ${gh_url}/dell.wyse.3040.ipxe || goto fallback

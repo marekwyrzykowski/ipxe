@@ -32,7 +32,6 @@ sudo mkdir -p pendrive
 sudo mount $(sudo losetup -a | grep "usb.ipxe.img" | cut -d":" -f1)p1 pendrive
 sudo mkdir -p pendrive/EFI/BOOT
 sudo wget https://boot.ipxe.org/x86_64-efi/snponly.efi -O pendrive/EFI/BOOT/BOOTX64.EFI
-sudo wget https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main/usb.ipxe/autoexec.ipxe -O pendrive/autoexec.ipxe
 sudo wget https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main/usb.ipxe/autoexec.ipxe -O pendrive/EFI/BOOT/autoexec.ipxe
 sudo umount pendrive 
 sudo losetup -d $(sudo losetup -a | grep "usb.ipxe.img" | cut -d":" -f1)
@@ -45,7 +44,7 @@ sudo losetup -d $(sudo losetup -a | grep "usb.ipxe.img" | cut -d":" -f1)
 #!/bin/bash
 set -e
 
-# 1. Przygotowanie czystego instalatora Debian 13 (Trixie
+# 1. Przygotowanie czystego instalatora Debian 13 (Trixie)
 rm -rf /tmp/a /tmp/rebuild_initrd /tmp/udeb_packages
 
 mkdir -p /tmp/a

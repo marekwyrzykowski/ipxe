@@ -4,7 +4,6 @@
 
 # Wait for the network to be ready
 ifopen net0
-#config net0
 
 :retry_dhcp
 dhcp || goto retry_dhcp
@@ -13,28 +12,26 @@ dhcp || goto retry_dhcp
 sleep 3
 
 # NTP synchronization before proceeding with the boot process
-ntp time.cloudflare.com || ntp 2.pool.ntp.org ||
+ntp time.nist.gov || time.cloudflare.com || ntp 2.pool.ntp.org || goto fallback_ntp
 
 echo "Network is ready, proceeding with boot process..."
 
-
-# =========================================================================
 # Redirect to a specific configuration based on the MAC address of the client
-# =========================================================================
 set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main
 
-# 1. First, try to load a configuration file specific to the client's MAC address
-# ${rand} is used to prevent caching issues
-chain --autofree ${gh_url}/mac-${net0/mac}.ipxe?${rand} || goto generic_boot
+chain --autofree ${gh_url}/w*-mac-${net0/mac}.ipxe || goto generic_boot
 
 :generic_boot
-# 2. If no specific configuration is found, load the generic boot menu
-# ${rand} is used to prevent caching issues
-chain --autofree ${gh_url}/boot.ipxe?${rand} || goto fallback
+chain --autofree ${gh_url}/boot.ipxe || goto fallback_config
 
-:fallback
-# 3. If the generic boot menu is also not found, display an error message
+:fallback_ntp
+echo "Error: Unable to synchronize time with NTP servers."
+echo "Please check the network connection and the availability of the NTP servers." && goto end
+
+:fallback_config
 echo "Error: Unable to load boot configuration from ${gh_url}"
-echo "Please check the network connection and the availability of the configuration files."
+echo "Please check the network connection and the availability of the configuration files." && goto end
+
+:end
 sleep 15
 reboot
