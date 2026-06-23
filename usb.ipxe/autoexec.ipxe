@@ -2,10 +2,6 @@
 
 # https://ipxe.org/cmd
 
-
-# Attempt to boot from the local disk first. If it fails, proceed with network installation.
-sanboot --no-describe --drive 0x80 && exit 0 || echo [iPXE] Empty or invalid local disk. Proceeding with network installation...
-
 # Wait for the network to be ready
 ifopen net0
 #config net0
