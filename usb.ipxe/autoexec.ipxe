@@ -19,7 +19,7 @@ echo "Network is ready, proceeding with boot process..."
 # Redirect to a specific configuration based on the MAC address of the client
 set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main
 
-chain --autofree ${gh_url}/w*-mac-${net0/mac}.ipxe || goto generic_boot
+chain --autofree ${gh_url}/mac-${net0/mac}.ipxe || goto generic_boot
 
 :generic_boot
 chain --autofree ${gh_url}/boot.ipxe || goto fallback_config
