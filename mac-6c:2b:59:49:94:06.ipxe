@@ -6,8 +6,8 @@ set hostname w05
 echo ${rand}
 sleep 5
 
-# Include the main Debian installer configuration for the Dell Wyse 3040 device
-chain --autofree ${gh_url}/dell.wyse.3040.ipxe?${rand} || goto fallback
+# Include the main Debian installer configuration for the Dell Wyse 5070 device
+chain --autofree ${gh_url}/dell.wyse.5070.ipxe?${rand} || goto fallback
 
 :fallback
 echo "Error: Unable to load boot configuration from ${gh_url} for the Dell Wyse 3040 device."
