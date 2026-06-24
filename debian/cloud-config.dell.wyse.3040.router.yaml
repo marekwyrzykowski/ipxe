@@ -1,0 +1,340 @@
+#cloud-config
+
+users:
+  - name: debian
+    gecos: System Administrator
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII9ji6fDp7SJQblM7imueKNpZLbFedHz7pqUC/6vxjOU marek
+
+
+disable_root: false
+
+# =========================================================================
+# 1. FILE GENERATION (Repository Config & Target Network Layout)
+# =========================================================================
+write_files:
+  # TARGET NETWORK CONFIGURATION: Written now, but applied ONLY after reboot
+  - path: /etc/netplan/00-installer-config.yaml
+    owner: root:root
+    permissions: '0600'
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          eth0:
+            dhcp4: false
+            dhcp6: false
+            optional: true
+
+        vlans:
+
+          eth0.6:
+            id: 6
+            link: eth0
+            dhcp4: false
+            dhcp6: false
+
+          eth0.20:
+            id: 20
+            link: eth0
+            dhcp4: false
+            dhcp6: false
+
+        bridges:
+
+          brlan:
+            dhcp4: true
+            dhcp6: true
+            interfaces:
+              - eth0.6
+            macaddress: eth0
+            parameters:
+              stp: false
+              forward-delay: 0
+
+          bripxe:
+            dhcp4: false
+            dhcp6: false
+            interfaces:
+              - eth0.20
+            addresses:
+              - 10.192.20.1/24
+            parameters:
+              stp: false
+              forward-delay: 0
+  
+  - path: /etc/network/interfaces
+    owner: root:root
+    permissions: '0644'
+    content: |
+      # This file is intentionally left empty to disable the old networking service.
+      # Network configuration will be managed by Netplan and systemd-networkd.
+      # Any manual configurations here will be ignored.
+  
+  - path: /etc/modprobe.d/blacklist_dw_dmac.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+      # https://wiki.debian.org/InstallingDebianOn/Dell/Wyse%203040
+      blacklist dw_dmac_core
+      install dw_dmac /bin/true
+      install dw_dmac_core /bin/true
+  
+  - path: /etc/systemd/system/generate-issue.service
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Generate dynamic /etc/issue with IP address
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/sh -c 'echo "Debian GNU/Linux 13 (\\l)\n" > /etc/issue; echo "Address IP: $(hostname -I)" >> /etc/issue; echo "" >> /etc/issue'
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+
+  - path: /etc/sysctl.d/99-ip-forward.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+      # Enable IP forwarding for routing
+      net.ipv4.ip_forward=1
+
+  - path: /etc/ssh/sshd_config.d/99-disable-passwords.conf
+    owner: root
+    permissions: '0644'
+    content: |
+      # Disable password authentication to enforce key-based auth
+      PubkeyAuthentication yes
+
+      # Disable password authentication
+      PasswordAuthentication no
+
+      # Disable interactive methods
+      KbdInteractiveAuthentication no
+      ChallengeResponseAuthentication no
+
+      # Additional security hardening
+      PermitEmptyPasswords no
+
+  - path: /usr/local/bin/nft-bridge-ctrl.sh
+    owner: root
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      ACTION=$1
+      INTERFACE=$2
+
+      if [ "$ACTION" == "add" ]; then
+          /usr/sbin/nft insert rule inet filter input iifname "$INTERFACE" accept
+          /usr/sbin/nft insert rule inet filter forward iifname "$INTERFACE" accept
+          /usr/sbin/nft insert rule inet filter forward oifname "$INTERFACE" accept
+          /usr/sbin/nft insert rule inet filter output oifname "$INTERFACE" accept
+      elif [ "$ACTION" == "remove" ]; then
+          /usr/sbin/nft delete rule inet filter input iifname "$INTERFACE" accept 2>/dev/null || true
+          /usr/sbin/nft delete rule inet filter forward iifname "$INTERFACE" accept 2>/dev/null || true
+          /usr/sbin/nft delete rule inet filter forward oifname "$INTERFACE" accept 2>/dev/null || true
+          /usr/sbin/nft delete rule inet filter output oifname "$INTERFACE" accept 2>/dev/null || true
+      fi
+
+  - path: /etc/udev/rules.d/99-incus-bridge.rules
+    owner: root
+    permissions: '0644'
+    content: |
+      SUBSYSTEM=="net", KERNEL=="incus-*", ACTION=="add", RUN+="/usr/local/bin/nft-bridge-ctrl.sh add %k"
+      SUBSYSTEM=="net", KERNEL=="incus-*", ACTION=="remove", RUN+="/usr/local/bin/nft-bridge-ctrl.sh remove %k"
+
+  - path: /etc/nftables.conf
+    permissions: '0644'
+    owner: root
+    content: |
+      #!/usr/sbin/nft -f
+
+      add table inet filter
+      flush table inet filter
+      table inet filter {
+          chain input {
+              type filter hook input priority filter; policy drop;
+              ct state established,related accept
+              iifname "lo" accept
+              iifname "lxcbr0" accept
+              icmp type echo-request accept
+              # DYNAMIC WAN INTERFACE:
+              iifname "brlan" tcp dport { 22,80,443 } accept
+          }
+          chain forward {
+              type filter hook forward priority filter; policy drop;
+              ct state established,related accept
+              # DYNAMIC WAN INTERFACE:
+              iifname "lxcbr0" oifname "brlan" accept
+          }
+          chain output {
+              type filter hook output priority filter; policy accept;
+          }
+      }
+
+      add table ip nat
+      flush table ip nat
+      table ip nat {
+          chain postrouting {
+              type nat hook postrouting priority srcnat; policy accept;
+              # DYNAMIC WAN INTERFACE:
+              oifname "brlan" masquerade
+          }
+      }
+
+  - path: /etc/dnsmasq.conf
+    owner: root
+    permissions: '0644'
+    content: |
+      # =========================================================================
+      # GŁÓWNA KONFIGURACJA SIECIOWA
+      # =========================================================================
+      # Słuchaj TYLKO na interfejsie sieci instalacyjnej (VLAN 20)
+      interface=bripxe
+
+      # Wyłączamy wbudowany serwer DNS (dnsmasq nie będzie serwerem DNS w tej sieci,
+      # przekażemy klientom zewnętrzne DNS-y np. od Cloudflare)
+      port=0
+
+      # =========================================================================
+      # SERWER DHCP (VLAN 20)
+      # =========================================================================
+      # Zakres przydzielanych adresów IP, maska oraz czas dzierżawy (1 godzina)
+      dhcp-range=10.192.20.10,10.192.20.250,255.255.255.0,1h
+
+      # Opcja 3: Ustawienie bramy domyślnej dla instalowanych maszyn (Twój Wyse)
+      dhcp-option=option:router,10.192.20.1
+
+      # Opcja 6: Przekazanie serwerów DNS (Cloudflare i Google), aby iPXE mogło rozwiązać domenę github.io
+      dhcp-option=option:dns-server,1.1.1.1,8.8.8.8
+
+      # =========================================================================
+      # SERWER TFTP & LOGIKA PXE DLA UEFI
+      # =========================================================================
+      # Włączenie wbudowanego serwera TFTP
+      enable-tftp
+      tftp-root=/var/ftpd
+
+      # Rozpoznawanie architektury klienta (64-bit UEFI zgłasza się jako architektura 7 lub 9)
+      dhcp-match=set:efi64,option:client-arch,7
+      dhcp-match=set:efi64,option:client-arch,9
+
+      # Jeśli maszyna to UEFI 64-bit, wyślij plik ipxe.efi (lub snponly.efi dla starych kart) przez TFTP
+      #dhcp-boot=tag:efi64,ipxe.efi
+      dhcp-boot=tag:efi64,snponly.efi
+      dhcp-boot=tag:ipxe,autoexec.ipxe
+
+  - path: /var/ftpd/autoexec.ipxe
+    owner: root
+    permissions: '0644'
+    content: |
+      #!ipxe
+
+      # https://ipxe.org/cmd
+
+      # Wait for the network to be ready
+      ifopen net0
+
+      :retry_dhcp
+      dhcp || goto retry_dhcp
+
+      # Wait for a moment to ensure the network is fully up
+      sleep 3
+
+      # NTP synchronization before proceeding with the boot process
+      ntp time.nist.gov || time.cloudflare.com || ntp 2.pool.ntp.org || goto fallback_ntp
+
+      echo "Network is ready, proceeding with boot process..."
+
+      # Redirect to a specific configuration based on the MAC address of the client
+      set gh_url https://raw.githubusercontent.com/marekwyrzykowski/ipxe/refs/heads/main
+
+      chain --autofree ${gh_url}/mac-${net0/mac}.ipxe || goto generic_boot
+
+      :generic_boot
+      chain --autofree ${gh_url}/boot.ipxe || goto fallback_config
+
+      :fallback_ntp
+      echo "Error: Unable to synchronize time with NTP servers."
+      echo "Please check the network connection and the availability of the NTP servers." && goto end
+
+      :fallback_config
+      echo "Error: Unable to load boot configuration from ${gh_url}"
+      echo "Please check the network connection and the availability of the configuration files." && goto end
+
+      :end
+      sleep 15
+      reboot
+
+
+# =========================================================================
+# 2. PACKAGE INSTALLATION
+# =========================================================================
+package_update: true
+package_upgrade: true
+packages:
+  - curl
+  - eatmydata
+  - nano
+  - incus-agent
+  - btop
+  - iproute2
+  - vlan
+  - ethtool
+  - dnsmasq
+  - lxc
+  - lxc-templates
+  - tree
+  - ipcalc
+  - python3-apt
+  - nftables
+
+# =========================================================================
+# 3. INSTALLATION (Runs smoothly on installer's network IP)
+# =========================================================================
+runcmd:
+  # Reload systemd to recognize the new service and enable it to run at boot
+  - systemctl daemon-reload
+  - systemctl enable generate-issue.service
+
+  # Remove the dw_dmac and dw_dmac_core modules if they are currently loaded to prevent the system from hanging on reboot.
+  - modprobe -r dw_dmac || true
+  - modprobe -r dw_dmac_core || true
+
+  # Update the initramfs to include the blacklist configuration
+  - update-initramfs -u
+
+  # Enable the nftables service to apply firewall rules at boot
+  - systemctl enable nftables.service
+
+  # Enable dnsmasq service to provide DHCP and TFTP services for PXE booting
+  - mkdir -p /var/ftpd
+  - wget -O /var/ftpd/ipxe.efi https://boot.ipxe.org/x86_64-efi/ipxe.efi
+  - wget -O /var/ftpd/snponly.efi https://boot.ipxe.org/x86_64-efi/snponly.efi
+  - systemctl enable dnsmasq.service
+
+  # The following two commands dynamically replace the placeholder "eth0" in the Netplan configuration with the actual MAC address of the eth0 interface,
+  # ensuring that the bridge is correctly associated with the physical network interface. This is crucial for proper network functionality after reboot.
+  - sed -i "s/macaddress:\s*eth0/macaddress:\ $(cat /sys/class/net/eth0/address)/g" /etc/netplan/00-installer-config.yaml
+  - netplan generate
+
+
+
+
+# =========================================================================
+# 4. REBOOT: Safe reboot to bring up the new br0 architecture
+# =========================================================================
+power_state:
+  mode: reboot
+  message: "Provisioning complete. Rebooting to apply the write_files network layout..."
+  timeout: 5
+  condition: true
