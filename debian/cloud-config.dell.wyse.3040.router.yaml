@@ -38,8 +38,8 @@ write_files:
             dhcp4: false
             dhcp6: false
 
-          eth0.20:
-            id: 20
+          eth0.21:
+            id: 21
             link: eth0
             dhcp4: false
             dhcp6: false
@@ -60,9 +60,9 @@ write_files:
             dhcp4: false
             dhcp6: false
             interfaces:
-              - eth0.20
+              - eth0.21
             addresses:
-              - 10.192.20.1/24
+              - 10.192.21.1/24
             parameters:
               stp: false
               forward-delay: 0
@@ -198,7 +198,7 @@ write_files:
       # =========================================================================
       # GŁÓWNA KONFIGURACJA SIECIOWA
       # =========================================================================
-      # Słuchaj TYLKO na interfejsie sieci instalacyjnej (VLAN 20)
+      # Słuchaj TYLKO na interfejsie sieci instalacyjnej
       interface=bripxe
 
       # Wyłączamy wbudowany serwer DNS (dnsmasq nie będzie serwerem DNS w tej sieci,
