@@ -1,0 +1,46 @@
+#debian@debian01:~$ sudo cat /etc/netplan/00-installer-config.yaml
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+      dhcp4: false
+      dhcp6: false
+      optional: true
+
+  vlans:
+
+    eth0.6:
+      id: 6
+      link: eth0
+      dhcp4: false
+      dhcp6: false
+
+    eth0.20:
+      id: 20
+      link: eth0
+      dhcp4: false
+      dhcp6: false
+
+  bridges:
+
+    brlan:
+      dhcp4: true
+      dhcp6: true
+      interfaces:
+        - eth0.6
+      macaddress: f0:d4:e2:f6:50:60
+      parameters:
+        stp: false
+        forward-delay: 0
+
+    bripxe:
+      dhcp4: false
+      dhcp6: false
+      interfaces:
+        - eth0.20
+      addresses:
+        - 10.192.20.1/24
+      parameters:
+        stp: false
+        forward-delay: 0

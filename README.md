@@ -56,10 +56,10 @@ mkdir -p /tmp/rebuild_initrd
 cd /tmp/rebuild_initrd
 zcat /tmp/a/initrd.gz | cpio -idmv
 
-# # 3. Dodanie sterowników (Firmware) Realtek
-# mkdir -p lib/firmware/rtl_nic
-# cd lib/firmware/rtl_nic
-# wget https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/rtl_nic/rtl8168h-2.fw
+# 3. Dodanie sterowników (Firmware) Realtek
+mkdir -p lib/firmware/rtl_nic
+cd lib/firmware/rtl_nic
+wget https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/rtl_nic/rtl8168h-2.fw
 
 # 4. Pobieranie pakietów udeb dla HTTPS oraz KLIENTA CZASU RDATE
 mkdir -p /tmp/udeb_packages

@@ -49,6 +49,7 @@ write_files:
             dhcp4: false
             dhcp6: false
             optional: true
+            wakeonlan: true
         bridges:
           br0:
             dhcp4: true
@@ -81,6 +82,7 @@ packages:
   - btop
   - iproute2
   - vlan
+  - ethtool
 
 # =========================================================================
 # 4. INSTALLATION (Runs smoothly on installer's network IP)
