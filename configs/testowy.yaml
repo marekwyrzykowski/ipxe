@@ -1,2 +1,2 @@
 distribution: debian
-cloud_config_file: cloud-config.dell.wyse.3040.yaml
+cloud_config_file: cloud-config.dell.wyse.3040.router.yaml
